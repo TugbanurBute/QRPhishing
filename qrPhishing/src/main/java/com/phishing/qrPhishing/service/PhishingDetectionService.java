@@ -1,26 +1,29 @@
 package com.phishing.qrPhishing.service;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
+import java.util.List;
 
 @Service
 public class PhishingDetectionService {
-    private final String ML_MODEL_URL = "http://127.0.0.1:5001/predict";
 
     public boolean isPhishing(String url) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        List<String> phishingKeywords = List.of("paypal", "login", "secure", "bank", "account", "verify", "update");
+        List<String> suspiciousTlds = List.of(".ru", ".cn", ".tk", ".biz", ".info");
 
-        String requestBody = "{\"url\": \"" + url + "\"}";
-        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+        // Check for phishing keywords
+        for (String keyword : phishingKeywords) {
+            if (url.toLowerCase().contains(keyword)) {
+                return true;
+            }
+        }
 
-        ResponseEntity<String> response = restTemplate.postForEntity(ML_MODEL_URL, entity, String.class);
-        return response.getBody().contains("true");
+        // Check for suspicious domain endings
+        for (String tld : suspiciousTlds) {
+            if (url.endsWith(tld)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
